@@ -3,8 +3,6 @@ let b = null;
 let operator = null;
 let operatorPressed = false;
 let displayingResult = false;
-let awaitingOperand = false;
-let activeOperatorButton = null;
 const buttons = document.querySelector(".buttons");
 const display = document.querySelector(".display");
 
@@ -61,40 +59,16 @@ const resetVar = () => {
     operator = null;
     displayingResult = false;
     operatorPressed = false;
-    awaitingOperand = false;
 }
 // reset
 const reset = () => {
     clearDisplay();
     resetVar();
-    clearOperatorHighlight();
 }
 // delete
 const displayDelete = () => {
     display.textContent = display.textContent.slice(0, -1);
 }
-
-const prepareDisplayForNextOperand = () => {
-    if (awaitingOperand) {
-        clearDisplay();
-        awaitingOperand = false;
-    }
-};
-
-const clearOperatorHighlight = () => {
-    if (activeOperatorButton) {
-        activeOperatorButton.classList.remove("active");
-        activeOperatorButton = null;
-    }
-};
-
-const highlightOperatorButton = (button) => {
-    clearOperatorHighlight();
-    if (button && button.classList.contains("operator")) {
-        button.classList.add("active");
-        activeOperatorButton = button;
-    }
-};
 
 // enter pressed
 const enterPressed = () => {
@@ -109,32 +83,14 @@ const enterPressed = () => {
         return;
     }
 
-    // Divide-by-zero guard with friendly message
-    if (operator === "/" && b === 0) {
-        clearOperatorHighlight();
-        display.textContent = "nope: ÷0";
-        display.classList.add("error");
-        // Reset state so next input starts fresh
-        a = null;
-        b = null;
-        operator = null;
-        operatorPressed = false;
-        awaitingOperand = false;
-        displayingResult = true;
-        return;
-    }
-
     a = operate(a, b, operator);
     
-    display.classList.remove("error");
     displayAdd(roundToSigFig(a));
 
     displayingResult = true;
     b = null;
     operator = null;
     operatorPressed = false;
-    awaitingOperand = false;
-    clearOperatorHighlight();
 }
 
 
@@ -177,49 +133,39 @@ buttons.addEventListener("click", e => {
             if (displayingResult) {
                 if (operatorPressed) {
                     clearDisplay();
-                    displayingResult = false;
                 } else {
                     reset();
                 }
             }
-            prepareDisplayForNextOperand();
             displayAdd(target.dataset.value);
             break;
         case ("operator"):
             if (displayingResult) {
+                clearDisplay();
                 operator = target.dataset.op;
                 operatorPressed = true;
-                awaitingOperand = true;
-                displayingResult = false;
-                highlightOperatorButton(target);
                 break;
             }
-
-            if (!operatorPressed && display.textContent !== "") {
+            // a: null, b: null, operator: null, operatorPressed: false, displayingResult: false
+            if (!operatorPressed && a === null) {
                 a = Number(display.textContent);
                 operator = target.dataset.op;
                 operatorPressed = true;
-                awaitingOperand = true;
-                highlightOperatorButton(target);
+                clearDisplay();
                 break;
             }
-
-            if (operatorPressed && awaitingOperand) {
+            // change operator
+            if (a !== null && operatorPressed && display.textContent === "") {
                 operator = target.dataset.op;
-                highlightOperatorButton(target);
                 break;
             }
-
-            if (operatorPressed && !awaitingOperand && display.textContent !== "") {
+            if (a !== null && operatorPressed && display.textContent !== "") {
                 let nextOperator = target.dataset.op;
                 enterPressed();
                 operator = nextOperator;
                 operatorPressed = true;
-                awaitingOperand = true;
-                highlightOperatorButton(target);
                 break;
             }
-            break;
         case ("action"):
             performAction(target.dataset.action);
             break;
