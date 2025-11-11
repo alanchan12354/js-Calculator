@@ -1,0 +1,20 @@
+.calculator {
+    display: flex;
+    flex-direction: column;
+}
+
+.display {
+    border: 1px solid #000;
+    box-sizing: border-box;
+    height: 50px;
+    margin-bottom: 10px;
+    padding: 10px;
+    font-size: 24px;
+    text-align: right;
+}
+
+.buttons {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+}
