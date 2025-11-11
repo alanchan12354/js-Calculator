@@ -6,8 +6,6 @@ let displayingResult = false;
 const buttons = document.querySelector(".buttons");
 const display = document.querySelector(".display");
 
-
-
 // returns (number)
 const add = (a, b) => a + b;
 const subtract = (a, b) => a - b;
@@ -24,8 +22,16 @@ const operate = (a, b, operator) => {
         case "/":
             return divide(a, b);
         default:
-            alert("ERROR");
+            console.log(`25error:\na: ${a}\nb: ${b}\noperator: ${operator}\operatorPressed: ${operatorPressed}\ndisplayingResult: ${displayingResult}`);
     }
+}
+
+// rounding
+function roundToSigFig(num, sig = 10) {
+    if (num === 0) return 0; 
+    
+    const multiplier = Math.pow(10, sig - 1 - Math.floor(Math.log10(Math.abs(num))));
+    return Math.round(num * multiplier) / multiplier;
 }
 
 
@@ -44,6 +50,7 @@ const displayAdd = (str) => {
 // clear display
 const clearDisplay = () => {
     display.textContent = "";
+    displayingResult = false;
 }
 // reset var
 const resetVar = () => {
@@ -63,25 +70,22 @@ const displayDelete = () => {
     display.textContent = display.textContent.slice(0, -1);
 }
 
-
-
 // enter pressed
 const enterPressed = () => {
     if (display.textContent !== "" && b === null) {
         b = Number(display.textContent);
         clearDisplay();
+        displayingResult = false;
     }
-    // if (a === null || b === null || operator === null) {
-    //     alert("(a === null || b === null || operator === null)");
-    //     return;
-    // }
-
-    if (a === null) alert ("a");
-    if (b === null) alert ("b");
-    if (operator === null) alert ("operator");
+    
+    if (a === null || b === null || operator === null) {
+        console.log(`73error:\na: ${a}\nb: ${b}\noperator: ${operator}\operatorPressed: ${operatorPressed}\ndisplayingResult: ${displayingResult}`);
+        return;
+    }
 
     a = operate(a, b, operator);
-    displayAdd(a);
+    
+    displayAdd(roundToSigFig(a));
 
     displayingResult = true;
     b = null;
@@ -127,19 +131,21 @@ buttons.addEventListener("click", e => {
     switch (btnType) {
         case ("digit"):
             if (displayingResult) {
-                reset();
+                if (operatorPressed) {
+                    clearDisplay();
+                } else {
+                    reset();
+                }
             }
             displayAdd(target.dataset.value);
             break;
         case ("operator"):
             if (displayingResult) {
-                displayingResult = false;
                 clearDisplay();
                 operator = target.dataset.op;
                 operatorPressed = true;
                 break;
             }
-
             // a: null, b: null, operator: null, operatorPressed: false, displayingResult: false
             if (!operatorPressed && a === null) {
                 a = Number(display.textContent);
@@ -153,8 +159,6 @@ buttons.addEventListener("click", e => {
                 operator = target.dataset.op;
                 break;
             }
-
-
             if (a !== null && operatorPressed && display.textContent !== "") {
                 let nextOperator = target.dataset.op;
                 enterPressed();
@@ -165,7 +169,6 @@ buttons.addEventListener("click", e => {
         case ("action"):
             performAction(target.dataset.action);
             break;
-
         default:
             break;
     }
